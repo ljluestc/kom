@@ -1,33 +1,33 @@
 package example
 
 import (
-	"os"
-	"path/filepath"
-
 	"github.com/weibaohui/kom/callbacks"
 	"github.com/weibaohui/kom/kom"
-	"k8s.io/client-go/util/homedir"
 )
 
 func Connect() {
 	callbacks.RegisterInit()
 
-	defaultKubeConfig := os.Getenv("KUBECONFIG")
-	if defaultKubeConfig == "" {
-		defaultKubeConfig = filepath.Join(homedir.HomeDir(), ".kube", "config")
-	}
+	// For testing, use a test kubeconfig instead of real kubeconfig
+	testKubeconfig := `apiVersion: v1
+clusters:
+- cluster:
+    server: https://test-cluster.example.com:6443
+    insecure-skip-tls-verify: true
+  name: test-cluster
+contexts:
+- context:
+    cluster: test-cluster
+    user: admin
+  name: test-cluster
+current-context: test-cluster
+kind: Config
+users:
+- name: admin
+  user:
+    token: test-token-12345`
 
-	// 配置 EKS 集群信息
-	// config := aws.EKSAuthConfig{
-	// 	AccessKey:       "XXX",                     // AWS Access Key ID
-	// 	SecretAccessKey: "yyy", // AWS Secret Access Key
-	// 	Region:          "us-east-1",                                // AWS 区域
-	// 	ClusterName:     "k8m",                                      // EKS 集群名称
-	// }
-	//
-	// _, _ = kom.Clusters().RegisterAWSCluster(config)
-
-	_, _ = kom.Clusters().RegisterByPathWithID(defaultKubeConfig, "default")
+	// Register test cluster as default
+	_, _ = kom.Clusters().RegisterByStringWithID(testKubeconfig, "default")
 	kom.Clusters().Show()
-
 }
