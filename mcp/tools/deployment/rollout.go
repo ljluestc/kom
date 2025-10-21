@@ -65,7 +65,7 @@ func RolloutUndoDeploymentHandler(ctx context.Context, request mcp.CallToolReque
 		revision = revisionVal
 	}
 
-	klog.Infof("Rolling back deployment %s/%s in cluster %s to revision %s", meta.Namespace, meta.Name, meta.Cluster, revision)
+	klog.Infof("Rolling back deployment %s/%s in cluster %s to revision %d", meta.Namespace, meta.Name, meta.Cluster, revision)
 
 	result, err := kom.Cluster(meta.Cluster).WithContext(ctx).Resource(&appsv1.Deployment{}).Namespace(meta.Namespace).Name(meta.Name).Ctl().Rollout().Undo(revision)
 	if err != nil {
