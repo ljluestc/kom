@@ -29,18 +29,18 @@ type ServerConfig struct {
 	Port          int
 	ServerOptions []server.ServerOption
 	SSEOption     []server.SSEOption
-	Metadata      map[string]string // 元数据
-	AuthKey       string            // 认证key
-	Mode          ServerMode        // 运行模式 sse,stdio
+	Metadata      map[string]string  // 元数据
+	AuthKey       string             // 认证key
+	Mode          ServerMode         // 运行模式 sse,stdio
 	Kubeconfigs   []KubeconfigConfig // 多集群kubeconfig配置
 }
 
 // KubeconfigConfig 定义了单个集群的kubeconfig配置
 type KubeconfigConfig struct {
-	ID       string // 集群ID，用于标识集群
-	Path     string // kubeconfig文件路径
-	Content  string // kubeconfig内容（与Path二选一）
-	IsDefault bool  // 是否为默认集群
+	ID        string // 集群ID，用于标识集群
+	Path      string // kubeconfig文件路径
+	Content   string // kubeconfig内容（与Path二选一）
+	IsDefault bool   // 是否为默认集群
 }
 
 // ServerMode 定义了服务器的运行模式类型

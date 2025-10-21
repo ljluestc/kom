@@ -9,27 +9,87 @@
 - Configured Kubernetes cluster
 - Default Kubeconfig file
 
-### Start Command
+### Basic Start Command
 ```go
 mcp.RunMCPServer("kom mcp server", "0.0.1", 3619)
 ```
 
+### Multi-Cluster Configuration
+```go
+// Method 1: Manual kubeconfig specification
+kubeconfigs := []mcp.KubeconfigConfig{
+    {
+        ID:        "production",
+        Path:      "/path/to/production-kubeconfig.yaml",
+        IsDefault: true,
+    },
+    {
+        ID:   "staging",
+        Path: "/path/to/staging-kubeconfig.yaml",
+    },
+}
+
+cfg := mcp.ServerConfig{
+    Name:        "kom mcp server",
+    Version:     "0.0.1",
+    Port:        9096,
+    Mode:        mcp.ServerModeSSE,
+    Kubeconfigs: kubeconfigs,
+}
+mcp.RunMCPServerWithOption(&cfg)
+```
+
+### Directory Auto-Discovery
+```go
+// Method 2: Load all kubeconfig files from directory
+kubeconfigs, err := mcp.LoadKubeconfigsFromDirectory("/path/to/kubeconfigs")
+if err != nil {
+    log.Fatal(err)
+}
+
+cfg := mcp.ServerConfig{
+    Mode:        mcp.ServerModeSSE,
+    Kubeconfigs: kubeconfigs,
+}
+mcp.RunMCPServerWithOption(&cfg)
+```
+
 ## Features
 
-- Multi-cluster Management: Support managing multiple Kubernetes clusters simultaneously
-- Dynamic Resource Operations: Support CRUD operations on various Kubernetes resources
-- Event Monitoring: Real-time cluster event viewing
-- Resource Description: Get detailed resource information
+- **Multi-cluster Management**: Support managing multiple Kubernetes clusters simultaneously in SSE mode
+- **Dynamic Cluster Registration**: Register and unregister clusters at runtime without restart
+- **Flexible Configuration**: Support kubeconfig file paths, content, and directory auto-discovery
+- **Dynamic Resource Operations**: Support CRUD operations on various Kubernetes resources
+- **Event Monitoring**: Real-time cluster event viewing
+- **Resource Description**: Get detailed resource information
+- **SSE Mode**: Full Server-Sent Events support for real-time communication
 
 ## API Interfaces
 
 ### Cluster Management
 
 #### List Clusters
-- API Name: `list_clusters`
-- Description: List all registered Kubernetes clusters
+- API Name: `list_k8s_clusters`
+- Description: List all registered Kubernetes clusters with detailed information
 - Parameters: None
-- Returns: Cluster list containing cluster names
+- Returns: Cluster list containing cluster names, hosts, and versions
+
+#### Register Cluster
+- API Name: `register_k8s_cluster`
+- Description: Dynamically register a new Kubernetes cluster
+- Parameters:
+  - cluster_id: Unique identifier for the cluster
+  - kubeconfig_path: Path to the kubeconfig file (optional)
+  - kubeconfig_content: Kubeconfig content (optional, alternative to path)
+  - is_default: Whether to set as default cluster
+- Returns: Registration status and cluster information
+
+#### Unregister Cluster
+- API Name: `unregister_k8s_cluster`
+- Description: Unregister a Kubernetes cluster
+- Parameters:
+  - cluster_id: Cluster identifier to unregister
+- Returns: Unregistration status
 
 ### Dynamic Resource Operations
 
@@ -81,7 +141,29 @@ mcp.RunMCPServer("kom mcp server", "0.0.1", 3619)
 ### List All Clusters
 ```json
 {
-  "tool": "list_clusters"
+  "tool": "list_k8s_clusters"
+}
+```
+
+### Register New Cluster
+```json
+{
+  "tool": "register_k8s_cluster",
+  "params": {
+    "cluster_id": "new-cluster",
+    "kubeconfig_path": "/path/to/kubeconfig.yaml",
+    "is_default": false
+  }
+}
+```
+
+### Unregister Cluster
+```json
+{
+  "tool": "unregister_k8s_cluster",
+  "params": {
+    "cluster_id": "old-cluster"
+  }
 }
 ```
 
@@ -111,11 +193,27 @@ mcp.RunMCPServer("kom mcp server", "0.0.1", 3619)
 }
 ```
 
+## Multi-Cluster Configuration Options
+
+### Method 1: Manual Configuration
+Specify each cluster individually with file paths or content.
+
+### Method 2: Directory Auto-Discovery
+Automatically load all kubeconfig files from a directory.
+
+### Method 3: Mixed Approach
+Combine manual configuration with directory loading.
+
 ## Notes
 
-1. When using dynamic resource operations, ensure to provide correct resource group, version, and kind information
-2. For cluster-scoped resources, the namespace parameter can be omitted
-3. When using label selectors, ensure to use the correct label format
+1. **Multi-cluster Support**: All existing MCP tools work seamlessly with multi-cluster setup
+2. **Cluster Identification**: Clusters are identified by their unique ID
+3. **Default Cluster**: When no specific cluster is specified, operations use the default cluster
+4. **Dynamic Management**: Clusters can be registered/unregistered at runtime without server restart
+5. **Error Handling**: Network errors and invalid configurations are handled gracefully
+6. **Resource Operations**: When using dynamic resource operations, ensure to provide correct resource group, version, and kind information
+7. **Cluster-scoped Resources**: For cluster-scoped resources, the namespace parameter can be omitted
+8. **Label Selectors**: When using label selectors, ensure to use the correct label format
 
 ## AI Tool Integration
 

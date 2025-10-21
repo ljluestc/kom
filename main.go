@@ -62,7 +62,7 @@ func main() {
 			IsDefault: true,
 		},
 		{
-			ID:   "cluster2", 
+			ID:   "cluster2",
 			Path: "/path/to/cluster2-kubeconfig.yaml",
 		},
 	}
